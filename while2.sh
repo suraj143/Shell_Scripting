@@ -1,0 +1,15 @@
+#!/bin/bash
+var1=100
+while [ $var1 -gt  40 ]
+do
+var1=`expr $var1 + 1`
+echo $var1
+done
+#!/bin/bash
+#var1=100
+#while [ $var1 -gt 10 ]
+#do
+#var1=`expr $var1 - 1`
+#echo $var1
+#done
+~              
