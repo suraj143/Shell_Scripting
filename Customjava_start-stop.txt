@@ -1,0 +1,64 @@
+# Author  YUQ9Q
+#**********************************************************************
+APP_PATH_BASE="/software/mdd/app/wdsapp"
+APP_JAR="$APP_PATH_BASE/WDSDistro.jar"
+CONSOLE_LOG="/software/mdd/app/logs/console.log"
+USER="syafep9"
+GROUP="jwdsdev"
+ENVRIONMENT="TEST"
+
+RUN_USER="$(/usr/bin/id -un)"
+
+
+APP_START_CMD="java -Dsystem.type=$ENVRIONMENT -Xms512M -Xmx1G -jar $APP_JAR"
+
+######################
+# check run user
+######################
+if [ "${RUN_USER}" != "$USER" -a "${RUN_USER}" != "root" ]
+then
+  echo ""
+  echo "This script must be run as $USER or root user. User ${RUN_USER} is not allowed to start WDS Distro App!"
+  exit 2
+fi
+
+#######################
+# SET THE PID LIST
+######################
+set_app() {
+        #Get pid if running
+        DISTRO_PID=`/bin/ps -fu $USER | grep WDSDisto* | grep java | grep -v grep | awk '{print $2}'`
+        #Exist status of the last command
+        DISTRO_PID_STATUS=$?
+}
+
+#####################
+# START Application
+#####################
+start() {
+set_app
+if [ $DISTRO_PID_STATUS -eq 0 ] && [ "$DISTRO_PID" != "" ]
+  then
+    echo "WDS Distro app  is already running!"
+    return
+  fi
+  if [ "${RUN_USER}" = "root" ]
+  then
+    runuser -s /bin/bash ${USER} -c "nohup ${APP_START_CMD} > $CONSOLE_LOG 2>&1 &"
+  else
+    nohup ${APP_START_CMD} > $CONSOLE_LOG 2>&1 &
+  fi
+  sleep 2
+  status
+}
+######################
+# STOP Application
+#####################
+stop(){
+set_app
+if [ $DISTRO_PID_STATUS -eq 0 ] && [ "$DISTRO_PID" != "" ]
+  then
+    echo "Stopping WDS Distro (pid  ${DISTRO_PID})..."
+    for PID in $DISTRO_PID
+    do
+      /bin/kill -9 $PID > /dev/null 
